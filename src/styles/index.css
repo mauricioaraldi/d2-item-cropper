@@ -1,0 +1,190 @@
+:root {
+  /** Colors */
+  --color-black: #000000;
+  --color-white: #ffffff;
+
+  --color-code-editor-bg: #2F1E2E;
+
+  --color-highlight: #FED8B1;
+
+  /** Font sizes */
+  --font-size-s: 16px;
+  --font-size-m: 20px;
+  --font-size-l: 24px;
+
+  /** Sizes */
+  --size-s: 8px;
+  --size-m: 16px;
+  --size-l: 32px;
+
+  --size-max-canvas-height: 300px;
+  --size-max-content-width: 1280px;
+}
+
+body {
+  font-family: 'Open Sans';
+  margin: 0;
+  padding: 0;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+header {
+  background-color: var(--color-white);
+  left: 0;
+  padding: var(--size-s) var(--size-m);
+  position: absolute;
+  top: 0;
+}
+
+header > h1 {
+  font-size: var(--font-size-l);
+  margin: 0;
+}
+
+#documentation {
+  margin-left: var(--size-m);
+}
+
+#documentation,
+button {
+  font-size: var(--font-size-s);
+}
+
+canvas {
+  display: block;
+  height: var(--size-max-canvas-height);
+  margin: 0 auto;
+  width: var(--size-max-content-width);
+}
+
+h3 {
+  margin: var(--size-s) 0;
+  padding: 0;
+  text-align: center;
+}
+
+#minimize {
+  margin-right: var(--spacing-s);
+}
+
+#menu {
+  text-align: center;
+  max-width: var(--size-max-content-width);
+  margin: auto;
+  padding: var(--size-s) 0;
+}
+
+#menu.bottom-right {
+  background-color: var(--color-white);
+  padding-right: 32px;
+  position: absolute;
+  right: 0px;
+  top: calc(var(--size-max-canvas-height) + 32px);
+  z-index: 10;
+}
+
+#controls {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#menu.bottom-right > #controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  width: 300px;
+}
+
+.controls-group > h3 {
+  display: inline-block;
+}
+
+.controls-group label,
+.sensors-group label {
+  border: 1px solid var(--color-black);
+  margin-left: var(--size-m);
+}
+
+#minimize {
+  grid-row: 1;
+  grid-column: 2;
+  margin-left: auto;
+}
+
+#position-controls {
+  margin: 0 var(--size-l);
+}
+
+#position-controls > div {
+  display: inline-block;
+}
+
+#animation-controls {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+#sensors {
+  height: 88px;
+  display: flex;
+  justify-content: space-around;
+  overflow: hidden;
+  transition: all ease 300ms;
+}
+
+#menu.minimized > #sensors {
+  height: 0px;
+}
+
+#menu.bottom-right > #sensors {
+  flex-direction: column;
+  height: auto;
+}
+
+.sensors-group > h4 {
+  display: inline-block;
+  margin: var(--size-s) 0;
+}
+
+.sensors-group > div {
+  display: flex;
+  grid-gap: var(--size-s);
+  justify-content: center;
+}
+
+.sensor {
+  cursor: pointer;
+  border: 1px solid var(--color-black);
+}
+
+.sensor.active,
+.sensor.active input {
+  background-color: var(--color-highlight);
+}
+
+.sensor > span {
+  margin: 0 var(--size-s);
+}
+
+.sensor > input {
+  cursor: pointer;
+  text-align: right;
+}
+
+input {
+  font-size: var(--font-size-s);
+	width: var(--size-l);
+}
+
+#code-editor-controls {
+  background-color: var(--color-code-editor-bg);
+  display: flex;
+  flex-direction: row;
+  gap: var(--size-s);
+  padding: var(--size-s);
+}

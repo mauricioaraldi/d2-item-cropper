@@ -1,0 +1,51 @@
+{
+  "name": "d2-item-cropper",
+  "version": "0.1.0",
+  "description": "Tool to crop item stats and image from an image.",
+  "homepage": "https://github.com/mauricioaraldi/d2-item-cropper",
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack/webpack.config.prod.js",
+    "dev": "webpack-dev-server --open --config webpack/webpack.config.dev.js",
+    "lint": "eslint ./src",
+    "deploy": "gh-pages -d dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "javascript",
+    "d2",
+    "item"
+  ],
+  "author": {
+    "name": "Mauricio Araldi",
+    "url": "https://github.com/mauricioaraldi"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mauricioaraldi/d2-item-cropper"
+  },
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/preset-env": "^7.11.5",
+    "babel-loader": "^8.1.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.1.2",
+    "cross-env": "^6.0.3",
+    "css-loader": "^3.6.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-loader": "^3.0.4",
+    "eslint-plugin-import": "^2.22.0",
+    "gh-pages": "^3.1.0",
+    "html-webpack-plugin": "^4.4.1",
+    "style-loader": "^1.2.1",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0",
+    "webpack-merge": "^4.2.2"
+  },
+  "dependencies": {
+    "noty": "^3.2.0-beta",
+  }
+}
