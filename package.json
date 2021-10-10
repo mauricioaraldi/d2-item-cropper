@@ -46,6 +46,6 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "noty": "^3.2.0-beta",
+    "noty": "^3.2.0-beta"
   }
 }
