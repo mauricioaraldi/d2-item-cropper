@@ -2,11 +2,14 @@ import Noty from 'noty';
 
 import {
   ITEM_DESCRIPTION_BG,
-  ITEM_DESCRIPTION_COLOR_THRESHOLD,
+  ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN,
+  ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX,
   REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW,
   REQUIRED_SELECTED_ITEM_MATCHES_IN_ROW,
-  SELECTED_ITEM_COLOR_THRESHOLD,
-  SELECTED_ITEM_BACKPACK_BG,
+  SELECTED_ITEM_BACKPACK_BG_1,
+  SELECTED_ITEM_BACKPACK_BG_2,
+  SELECTED_ITEM_COLOR_THRESHOLD_MAX,
+  SELECTED_ITEM_COLOR_THRESHOLD_MIN,
 } from './constants';
 
 import '../styles/index.css';
@@ -29,7 +32,9 @@ const setLoading = state => {
 
 const getLoading = () => document.querySelector('body').classList.contains('loading');
 
-const findItem = (ctx, image) => {
+const findItem = (ctx, image, curTry = 0) => {
+  const possibleMatchColors = [SELECTED_ITEM_BACKPACK_BG_1, SELECTED_ITEM_BACKPACK_BG_2];
+  const matchColor = possibleMatchColors[curTry];
   let matches = 0;
   let matchInitPos;
   let matchEndPos;
@@ -40,16 +45,16 @@ const findItem = (ctx, image) => {
 
       if (
         (
-          imageData.data[0] - SELECTED_ITEM_COLOR_THRESHOLD < SELECTED_ITEM_BACKPACK_BG[0]
-          && imageData.data[0] + SELECTED_ITEM_COLOR_THRESHOLD > SELECTED_ITEM_BACKPACK_BG[0]
+          imageData.data[0] - SELECTED_ITEM_COLOR_THRESHOLD_MIN < matchColor[0]
+          && imageData.data[0] + SELECTED_ITEM_COLOR_THRESHOLD_MAX > matchColor[0]
         )
         && (
-          imageData.data[1] - SELECTED_ITEM_COLOR_THRESHOLD < SELECTED_ITEM_BACKPACK_BG[1]
-          && imageData.data[1] + SELECTED_ITEM_COLOR_THRESHOLD > SELECTED_ITEM_BACKPACK_BG[1]
+          imageData.data[1] - SELECTED_ITEM_COLOR_THRESHOLD_MIN < matchColor[1]
+          && imageData.data[1] + SELECTED_ITEM_COLOR_THRESHOLD_MAX > matchColor[1]
         )
         && (
-          imageData.data[2] - SELECTED_ITEM_COLOR_THRESHOLD < SELECTED_ITEM_BACKPACK_BG[2]
-          && imageData.data[2] + SELECTED_ITEM_COLOR_THRESHOLD > SELECTED_ITEM_BACKPACK_BG[2]
+          imageData.data[2] - SELECTED_ITEM_COLOR_THRESHOLD_MIN < matchColor[2]
+          && imageData.data[2] + SELECTED_ITEM_COLOR_THRESHOLD_MAX > matchColor[2]
         )
       ) {
         if (!matchInitPos) {
@@ -69,6 +74,14 @@ const findItem = (ctx, image) => {
         matchEndPos = null;
       }
     }
+  }
+
+  if (!matchInitPos) {
+    if (++curTry < possibleMatchColors.length) {
+      return findItem(ctx, image, curTry);
+    }
+
+    return null;
   }
 
   return {
@@ -95,16 +108,16 @@ const findItemDescription = (ctx, image, itemInitPos) => {
 
     if (
       (
-        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[0]
-        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[0]
+        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[0]
+        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[0]
       )
       && (
-        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[1]
-        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[1]
+        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[1]
+        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[1]
       )
       && (
-        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[2]
-        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[2]
+        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[2]
+        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[2]
       )
     ) {
       if (!endLine) {
@@ -129,21 +142,21 @@ const findItemDescription = (ctx, image, itemInitPos) => {
     return null;
   }
 
-  for (let column = itemInitPos[0] - 500; column < image.width; column++) {
+  for (let column = itemInitPos[0] - 250; column < image.width; column++) {
     const imageData = ctx.getImageData(column, initLine, 1, 1);
 
     if (
       (
-        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[0]
-        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[0]
+        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[0]
+        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[0]
       )
       && (
-        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[1]
-        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[1]
+        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[1]
+        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[1]
       )
       && (
-        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[2]
-        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[2]
+        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[2]
+        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[2]
       )
     ) {
       if (!initColumn) {
@@ -206,6 +219,13 @@ document.addEventListener('paste', event => {
       virtualCtx.drawImage(image, 0, 0);
 
       const { imageData: itemImageData, initPos: itemInitPos } = findItem(virtualCtx, image);
+
+      if (!itemImageData) {
+        setLoading(false);
+        alert('Not possible to find item');
+        return;
+      }
+
       const { imageData: descriptionImageData } = findItemDescription(virtualCtx, image, itemInitPos);
 
       canvas.height = descriptionImageData.height + itemImageData.height;
@@ -224,5 +244,6 @@ document.addEventListener('paste', event => {
     reader.readAsDataURL(blob);
   } catch (e) {
     setLoading(false);
+    console.error(e);
   }
 });
