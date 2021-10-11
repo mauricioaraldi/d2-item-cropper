@@ -1,6 +1,13 @@
 import Noty from 'noty';
 
-import { COLOR_THRESHOLD, SELECT_ITEM_BACKPACK_BG } from './constants';
+import {
+  ITEM_DESCRIPTION_BG,
+  ITEM_DESCRIPTION_COLOR_THRESHOLD,
+  REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW,
+  REQUIRED_SELECTED_ITEM_MATCHES_IN_ROW,
+  SELECTED_ITEM_COLOR_THRESHOLD,
+  SELECTED_ITEM_BACKPACK_BG,
+} from './constants';
 
 import '../styles/index.css';
 
@@ -22,7 +29,8 @@ const setLoading = state => {
 
 const getLoading = () => document.querySelector('body').classList.contains('loading');
 
-const findItemDescription = (ctx, image) => {
+const findItem = (ctx, image) => {
+  let matches = 0;
   let matchInitPos;
   let matchEndPos;
 
@@ -32,16 +40,16 @@ const findItemDescription = (ctx, image) => {
 
       if (
         (
-          imageData.data[0] - COLOR_THRESHOLD < SELECT_ITEM_BACKPACK_BG[0]
-          && imageData.data[0] + COLOR_THRESHOLD > SELECT_ITEM_BACKPACK_BG[0]
+          imageData.data[0] - SELECTED_ITEM_COLOR_THRESHOLD < SELECTED_ITEM_BACKPACK_BG[0]
+          && imageData.data[0] + SELECTED_ITEM_COLOR_THRESHOLD > SELECTED_ITEM_BACKPACK_BG[0]
         )
         && (
-          imageData.data[1] - COLOR_THRESHOLD < SELECT_ITEM_BACKPACK_BG[1]
-          && imageData.data[1] + COLOR_THRESHOLD > SELECT_ITEM_BACKPACK_BG[1]
+          imageData.data[1] - SELECTED_ITEM_COLOR_THRESHOLD < SELECTED_ITEM_BACKPACK_BG[1]
+          && imageData.data[1] + SELECTED_ITEM_COLOR_THRESHOLD > SELECTED_ITEM_BACKPACK_BG[1]
         )
         && (
-          imageData.data[2] - COLOR_THRESHOLD < SELECT_ITEM_BACKPACK_BG[2]
-          && imageData.data[2] + COLOR_THRESHOLD > SELECT_ITEM_BACKPACK_BG[2]
+          imageData.data[2] - SELECTED_ITEM_COLOR_THRESHOLD < SELECTED_ITEM_BACKPACK_BG[2]
+          && imageData.data[2] + SELECTED_ITEM_COLOR_THRESHOLD > SELECTED_ITEM_BACKPACK_BG[2]
         )
       ) {
         if (!matchInitPos) {
@@ -49,18 +57,123 @@ const findItemDescription = (ctx, image) => {
         } else {
           matchEndPos = [column, line];
         }
+
+        matches++;
+
+        continue;
+      }
+
+      if (matches < REQUIRED_SELECTED_ITEM_MATCHES_IN_ROW) {
+        matches = 0;
+        matchInitPos = null;
+        matchEndPos = null;
       }
     }
   }
 
-  setLoading(false);
+  return {
+    imageData: ctx.getImageData(
+      matchInitPos[0],
+      matchInitPos[1],
+      matchEndPos[0] - matchInitPos[0],
+      matchEndPos[1] - matchInitPos[1],
+    ),
+    initPos: matchInitPos,
+    endPos: matchEndPos,
+  };
+};
 
-  return ctx.getImageData(
-    matchInitPos[0], 
-    matchInitPos[1], 
-    matchEndPos[0] - matchInitPos[0], 
-    matchEndPos[1] - matchInitPos[1],
-  );
+const findItemDescription = (ctx, image, itemInitPos) => {
+  let matches = 0;
+  let initLine;
+  let endLine;
+  let initColumn;
+  let endColumn;
+
+  for (let line = itemInitPos[1]; line > 0; line--) {
+    const imageData = ctx.getImageData(itemInitPos[0], line, 1, 1);
+
+    if (
+      (
+        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[0]
+        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[0]
+      )
+      && (
+        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[1]
+        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[1]
+      )
+      && (
+        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[2]
+        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[2]
+      )
+    ) {
+      if (!endLine) {
+        endLine = line;
+      } else {
+        initLine = line;
+      }
+
+      matches++;
+
+      continue;
+    }
+
+    if (matches < REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW) {
+      matches = 0;
+      initLine = null;
+      endLine = null;
+    }
+  }
+
+  if (!initLine) {
+    return null;
+  }
+
+  for (let column = itemInitPos[0] - 500; column < image.width; column++) {
+    const imageData = ctx.getImageData(column, initLine, 1, 1);
+
+    if (
+      (
+        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[0]
+        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[0]
+      )
+      && (
+        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[1]
+        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[1]
+      )
+      && (
+        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD < ITEM_DESCRIPTION_BG[2]
+        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD > ITEM_DESCRIPTION_BG[2]
+      )
+    ) {
+      if (!initColumn) {
+        initColumn = column;
+      } else {
+        endColumn = column;
+      }
+
+      matches++;
+
+      continue;
+    }
+
+    if (matches < REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW) {
+      matches = 0;
+      initColumn = null;
+      endColumn = null;
+    }
+  }
+
+  return {
+    imageData: ctx.getImageData(
+      initColumn,
+      initLine,
+      endColumn - initColumn,
+      endLine - initLine
+    ),
+    initPos: [initColumn, initLine],
+    endPos: [endColumn, endLine],
+  };
 };
 
 document.addEventListener('paste', event => {
@@ -92,12 +205,20 @@ document.addEventListener('paste', event => {
       virtualCanvas.width = image.width;
       virtualCtx.drawImage(image, 0, 0);
 
-      const imageData = findItemDescription(virtualCtx, image);
+      const { imageData: itemImageData, initPos: itemInitPos } = findItem(virtualCtx, image);
+      const { imageData: descriptionImageData } = findItemDescription(virtualCtx, image, itemInitPos);
 
-      canvas.height = imageData.height;
-      canvas.width = imageData.width;
+      canvas.height = descriptionImageData.height + itemImageData.height;
+      canvas.width = descriptionImageData.width + itemImageData.width;
 
-      ctx.putImageData(imageData, 0, 0);
+      ctx.putImageData(descriptionImageData, 0, 0);
+      ctx.putImageData(
+        itemImageData,
+        (descriptionImageData.width / 2) - (itemImageData.width / 2),
+        descriptionImageData.height
+      );
+
+      setLoading(false);
     };
 
     reader.readAsDataURL(blob);
