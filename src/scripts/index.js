@@ -1,15 +1,14 @@
 import Noty from 'noty';
 
 import {
-  ITEM_DESCRIPTION_BG,
-  ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN,
-  ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX,
-  REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW,
-  REQUIRED_SELECTED_ITEM_MATCHES_IN_ROW,
-  SELECTED_ITEM_BACKPACK_BG_1,
-  SELECTED_ITEM_BACKPACK_BG_2,
-  SELECTED_ITEM_COLOR_THRESHOLD_MAX,
-  SELECTED_ITEM_COLOR_THRESHOLD_MIN,
+  DESCRIPTION_BG_COLOR,
+  DESCRIPTION_BG_THRESHOLD_MIN,
+  DESCRIPTION_BG_THRESHOLD_MAX,
+
+  DESCRIPTION_FONT_THRESHOLD_MIN,
+  DESCRIPTION_FONT_THRESHOLD_MAX,
+  DESCRIPTION_FONT_COLOR,
+  REQUIRED_DESCRIPTION_FONT_MATCHES_IN_ROW,
 } from './constants';
 
 import '../styles/index.css';
@@ -32,109 +31,106 @@ const setLoading = state => {
 
 const getLoading = () => document.querySelector('body').classList.contains('loading');
 
-const findItem = (ctx, image, curTry = 0) => {
-  const possibleMatchColors = [SELECTED_ITEM_BACKPACK_BG_1, SELECTED_ITEM_BACKPACK_BG_2];
-  const matchColor = possibleMatchColors[curTry];
-  let matches = 0;
+const matchColor = (pixel, expected, thresholdMin = 0, thresholdMax = 0) => 
+    (pixel[0] - thresholdMin <= expected[0] && pixel[0] + thresholdMax >= expected[0])
+    && (pixel[1] - thresholdMin <= expected[1] && pixel[1] + thresholdMax >= expected[1])
+    && (pixel[2] - thresholdMin <= expected[2] && pixel[2] + thresholdMax >= expected[2]);
+
+const findS = (ctx, image, curTry = 0) => {
+  const matchFontColor = DESCRIPTION_FONT_COLOR[curTry];
   let matchInitPos;
   let matchEndPos;
+  let matchPixel;
 
   for (let line = 0; line < image.height; line++) {
     for (let column = 0; column < image.width; column++) {
-      const imageData = ctx.getImageData(column, line, 1, 1);
+      for (let matches = 0; matches < REQUIRED_DESCRIPTION_FONT_MATCHES_IN_ROW; matches++) {
+        const imageData = ctx.getImageData(column + matches, line + matches, 1, 1);
 
-      if (
-        (
-          imageData.data[0] - SELECTED_ITEM_COLOR_THRESHOLD_MIN < matchColor[0]
-          && imageData.data[0] + SELECTED_ITEM_COLOR_THRESHOLD_MAX > matchColor[0]
-        )
-        && (
-          imageData.data[1] - SELECTED_ITEM_COLOR_THRESHOLD_MIN < matchColor[1]
-          && imageData.data[1] + SELECTED_ITEM_COLOR_THRESHOLD_MAX > matchColor[1]
-        )
-        && (
-          imageData.data[2] - SELECTED_ITEM_COLOR_THRESHOLD_MIN < matchColor[2]
-          && imageData.data[2] + SELECTED_ITEM_COLOR_THRESHOLD_MAX > matchColor[2]
-        )
-      ) {
-        if (!matchInitPos) {
-          matchInitPos = [column, line];
+        if (
+          matchColor(
+            imageData.data, 
+            matchFontColor,
+            DESCRIPTION_FONT_THRESHOLD_MIN,
+            DESCRIPTION_FONT_THRESHOLD_MAX
+          )
+        ) {
+          if (!matchPixel) {
+            matchPixel = [column, line];  
+          }
         } else {
-          matchEndPos = [column, line];
+          matchPixel = null;
+          break;
         }
-
-        matches++;
-
-        continue;
       }
 
-      if (matches < REQUIRED_SELECTED_ITEM_MATCHES_IN_ROW) {
-        matches = 0;
-        matchInitPos = null;
-        matchEndPos = null;
+      if (matchPixel) {
+        break;
       }
+    }
+
+    if (matchPixel) {
+      break;
     }
   }
 
-  if (!matchInitPos) {
-    if (++curTry < possibleMatchColors.length) {
+  if (!matchPixel) {
+    if (++curTry < DESCRIPTION_FONT_COLOR.length) {
       return findItem(ctx, image, curTry);
     }
 
     return null;
   }
 
-  return {
-    imageData: ctx.getImageData(
-      matchInitPos[0],
-      matchInitPos[1],
-      matchEndPos[0] - matchInitPos[0],
-      matchEndPos[1] - matchInitPos[1],
-    ),
-    initPos: matchInitPos,
-    endPos: matchEndPos,
-  };
+  return [matchPixel[0] - 1, matchPixel[1] - 4];
 };
 
-const findItemDescription = (ctx, image, itemInitPos) => {
-  let matches = 0;
+const findDescriptionBoundaries = (ctx, image, SPosition) => {
   let initLine;
   let endLine;
   let initColumn;
   let endColumn;
 
-  for (let line = itemInitPos[1]; line > 0; line--) {
-    const imageData = ctx.getImageData(itemInitPos[0], line, 1, 1);
+  const maxBoundaryInitColumn = (SPosition[0] - 200) >= 0 ? SPosition[0] - 200 : 0;
+  const maxBoundaryInitLine = (SPosition[1] - 30) >= 0 ? SPosition[1] - 30 : 0;
+
+  /* Init Column */
+  for (let column = SPosition[0]; column >= maxBoundaryInitColumn; column--) {
+    const imageData = ctx.getImageData(column, SPosition[1], 1, 1);
 
     if (
-      (
-        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[0]
-        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[0]
-      )
-      && (
-        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[1]
-        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[1]
-      )
-      && (
-        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[2]
-        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[2]
+      matchColor(
+        imageData.data,
+        DESCRIPTION_BG_COLOR[0],
+        DESCRIPTION_BG_THRESHOLD_MIN,
+        DESCRIPTION_BG_THRESHOLD_MAX
       )
     ) {
-      if (!endLine) {
-        endLine = line;
-      } else {
-        initLine = line;
-      }
-
-      matches++;
-
-      continue;
+      initColumn = column;
+    } else {
+      break;
     }
+  }
 
-    if (matches < REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW) {
-      matches = 0;
-      initLine = null;
-      endLine = null;
+  if (!initColumn) {
+    return null;
+  }
+
+  /* Init Line */
+  for (let line = SPosition[1]; line >= maxBoundaryInitLine; line--) {
+    const imageData = ctx.getImageData(initColumn, line, 1, 1);
+
+    if (
+      matchColor(
+        imageData.data, 
+        DESCRIPTION_BG_COLOR[0],
+        DESCRIPTION_BG_THRESHOLD_MIN,
+        DESCRIPTION_BG_THRESHOLD_MAX
+      )
+    ) {
+      initLine = line;
+    } else {
+      break;
     }
   }
 
@@ -142,39 +138,48 @@ const findItemDescription = (ctx, image, itemInitPos) => {
     return null;
   }
 
-  for (let column = itemInitPos[0] - 250; column < image.width; column++) {
+  /* End Line */
+  for (let line = SPosition[1]; line <= image.height; line++) {
+    const imageData = ctx.getImageData(initColumn, line, 1, 1);
+
+    if (
+      matchColor(
+        imageData.data, 
+        DESCRIPTION_BG_COLOR[0],
+        DESCRIPTION_BG_THRESHOLD_MIN,
+        DESCRIPTION_BG_THRESHOLD_MAX
+      )
+    ) {
+      endLine = line;
+    } else {
+      break;
+    }
+  }
+
+  if (!endLine) {
+    return null;
+  }
+
+  /* End Column */
+  for (let column = SPosition[0]; column < image.width; column++) {
     const imageData = ctx.getImageData(column, initLine, 1, 1);
 
     if (
-      (
-        imageData.data[0] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[0]
-        && imageData.data[0] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[0]
-      )
-      && (
-        imageData.data[1] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[1]
-        && imageData.data[1] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[1]
-      )
-      && (
-        imageData.data[2] - ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN < ITEM_DESCRIPTION_BG[2]
-        && imageData.data[2] + ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX > ITEM_DESCRIPTION_BG[2]
+      matchColor(
+        imageData.data, 
+        DESCRIPTION_BG_COLOR[0],
+        DESCRIPTION_BG_THRESHOLD_MIN,
+        DESCRIPTION_BG_THRESHOLD_MAX
       )
     ) {
-      if (!initColumn) {
-        initColumn = column;
-      } else {
-        endColumn = column;
-      }
-
-      matches++;
-
-      continue;
+      endColumn = column;
+    } else {
+      break;
     }
+  }
 
-    if (matches < REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW) {
-      matches = 0;
-      initColumn = null;
-      endColumn = null;
-    }
+  if (!endColumn) {
+    return null;
   }
 
   return {
@@ -182,10 +187,12 @@ const findItemDescription = (ctx, image, itemInitPos) => {
       initColumn,
       initLine,
       endColumn - initColumn,
-      endLine - initLine
+      endLine - initLine,
     ),
-    initPos: [initColumn, initLine],
-    endPos: [endColumn, endLine],
+    initLine,
+    endLine,
+    initColumn,
+    endColumn,
   };
 };
 
@@ -218,25 +225,13 @@ document.addEventListener('paste', event => {
       virtualCanvas.width = image.width;
       virtualCtx.drawImage(image, 0, 0);
 
-      const { imageData: itemImageData, initPos: itemInitPos } = findItem(virtualCtx, image);
+      const SPosition = findS(virtualCtx, image);
+      const { imageData: descriptionImageData } = findDescriptionBoundaries(virtualCtx, image, SPosition);
 
-      if (!itemImageData) {
-        setLoading(false);
-        alert('Not possible to find item');
-        return;
-      }
-
-      const { imageData: descriptionImageData } = findItemDescription(virtualCtx, image, itemInitPos);
-
-      canvas.height = descriptionImageData.height + itemImageData.height;
-      canvas.width = descriptionImageData.width + itemImageData.width;
+      canvas.height = descriptionImageData.height;
+      canvas.width = descriptionImageData.width;
 
       ctx.putImageData(descriptionImageData, 0, 0);
-      ctx.putImageData(
-        itemImageData,
-        (descriptionImageData.width / 2) - (itemImageData.width / 2),
-        descriptionImageData.height
-      );
 
       setLoading(false);
     };

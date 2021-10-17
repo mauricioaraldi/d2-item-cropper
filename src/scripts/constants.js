@@ -1,11 +1,16 @@
 /* eslint object-property-newline: 0 */
 
-export const SELECTED_ITEM_BACKPACK_BG_1 = [9, 26, 7];
-export const SELECTED_ITEM_BACKPACK_BG_2 = [5, 37, 2];
-export const SELECTED_ITEM_COLOR_THRESHOLD_MAX = 1;
-export const SELECTED_ITEM_COLOR_THRESHOLD_MIN = 8;
-export const ITEM_DESCRIPTION_BG = [8, 8, 8];
-export const ITEM_DESCRIPTION_COLOR_THRESHOLD_MAX = 1;
-export const ITEM_DESCRIPTION_COLOR_THRESHOLD_MIN = 1;
-export const REQUIRED_SELECTED_ITEM_MATCHES_IN_ROW = 8;
-export const REQUIRED_ITEM_DESCRIPTION_MATCHES_IN_ROW = 1;
+/* Description BG */
+export const DESCRIPTION_BG_COLOR = [
+  [5, 5, 5],
+];
+export const DESCRIPTION_BG_THRESHOLD_MAX = 5;
+export const DESCRIPTION_BG_THRESHOLD_MIN = 20;
+
+/* Description font */
+export const DESCRIPTION_FONT_COLOR = [
+  [124, 109, 250], /* Magic */
+];
+export const DESCRIPTION_FONT_THRESHOLD_MAX = 7;
+export const DESCRIPTION_FONT_THRESHOLD_MIN = 5;
+export const REQUIRED_DESCRIPTION_FONT_MATCHES_IN_ROW = 5;
