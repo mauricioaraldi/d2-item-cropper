@@ -4,6 +4,7 @@ import {
   DESCRIPTION_BG_COLOR,
   DESCRIPTION_BG_THRESHOLD_MIN,
   DESCRIPTION_BG_THRESHOLD_MAX,
+  DESCRIPTION_BG_PADDING,
 
   DESCRIPTION_FONT_THRESHOLD_MIN,
   DESCRIPTION_FONT_THRESHOLD_MAX,
@@ -47,6 +48,8 @@ const findS = (ctx, image, curTry = 0) => {
       for (let matches = 0; matches < REQUIRED_DESCRIPTION_FONT_MATCHES_IN_ROW; matches++) {
         const imageData = ctx.getImageData(column + matches, line + matches, 1, 1);
 
+        // console.log(imageData.data);
+
         if (
           matchColor(
             imageData.data, 
@@ -65,7 +68,20 @@ const findS = (ctx, image, curTry = 0) => {
       }
 
       if (matchPixel) {
-        break;
+        const blackBoxPixel = ctx.getImageData(matchPixel[0] - 5, matchPixel[1], 1, 1);
+
+        if (
+          matchColor(
+            blackBoxPixel.data,
+            DESCRIPTION_BG_COLOR[0],
+            DESCRIPTION_BG_THRESHOLD_MIN,
+            DESCRIPTION_BG_THRESHOLD_MAX
+          )
+        ) {
+          break;
+        } else {
+          matchPixel = null;
+        }
       }
     }
 
@@ -76,7 +92,7 @@ const findS = (ctx, image, curTry = 0) => {
 
   if (!matchPixel) {
     if (++curTry < DESCRIPTION_FONT_COLOR.length) {
-      return findItem(ctx, image, curTry);
+      return findS(ctx, image, curTry);
     }
 
     return null;
@@ -112,7 +128,7 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
     }
   }
 
-  if (!initColumn) {
+  if (initColumn === undefined) {
     return null;
   }
 
@@ -134,7 +150,7 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
     }
   }
 
-  if (!initLine) {
+  if (initLine === undefined) {
     return null;
   }
 
@@ -156,7 +172,7 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
     }
   }
 
-  if (!endLine) {
+  if (endLine === undefined) {
     return null;
   }
 
@@ -178,16 +194,16 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
     }
   }
 
-  if (!endColumn) {
+  if (endColumn === undefined) {
     return null;
   }
 
   return {
     imageData: ctx.getImageData(
       initColumn,
-      initLine,
+      initLine + DESCRIPTION_BG_PADDING,
       endColumn - initColumn,
-      endLine - initLine,
+      endLine - initLine - DESCRIPTION_BG_PADDING,
     ),
     initLine,
     endLine,
