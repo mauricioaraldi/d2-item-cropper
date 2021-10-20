@@ -6,9 +6,8 @@ import {
   DESCRIPTION_BG_THRESHOLD_MAX,
   DESCRIPTION_BG_PADDING,
 
-  DESCRIPTION_FONT_THRESHOLD_MIN,
-  DESCRIPTION_FONT_THRESHOLD_MAX,
   DESCRIPTION_FONT_COLOR,
+  REQUIRED_BLACKBOX_MATCHES_IN_ROW,
   REQUIRED_DESCRIPTION_FONT_MATCHES_IN_ROW,
 } from './constants';
 
@@ -53,9 +52,9 @@ const findS = (ctx, image, curTry = 0) => {
         if (
           matchColor(
             imageData.data, 
-            matchFontColor,
-            DESCRIPTION_FONT_THRESHOLD_MIN,
-            DESCRIPTION_FONT_THRESHOLD_MAX
+            matchFontColor.color,
+            matchFontColor.thresholdMin,
+            matchFontColor.thresholdMax
           )
         ) {
           if (!matchPixel) {
@@ -68,18 +67,25 @@ const findS = (ctx, image, curTry = 0) => {
       }
 
       if (matchPixel) {
-        const blackBoxPixel = ctx.getImageData(matchPixel[0] - 5, matchPixel[1], 1, 1);
+        let gotCorrectLetter = true;
 
-        if (
-          matchColor(
-            blackBoxPixel.data,
-            DESCRIPTION_BG_COLOR[0],
-            DESCRIPTION_BG_THRESHOLD_MIN,
-            DESCRIPTION_BG_THRESHOLD_MAX
-          )
-        ) {
-          break;
-        } else {
+        for (let blackBoxMatches = 0; blackBoxMatches < REQUIRED_BLACKBOX_MATCHES_IN_ROW; blackBoxMatches++) {
+          const blackBoxPixel = ctx.getImageData(matchPixel[0] - (5 + blackBoxMatches), matchPixel[1], 1, 1);
+
+          if (
+            !matchColor(
+              blackBoxPixel.data,
+              DESCRIPTION_BG_COLOR[0],
+              DESCRIPTION_BG_THRESHOLD_MIN,
+              DESCRIPTION_BG_THRESHOLD_MAX
+            )
+          ) {
+            gotCorrectLetter = false;
+            break;
+          }
+        }
+
+        if (!gotCorrectLetter) {
           matchPixel = null;
         }
       }
@@ -109,6 +115,8 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
 
   const maxBoundaryInitColumn = (SPosition[0] - 200) >= 0 ? SPosition[0] - 200 : 0;
   const maxBoundaryInitLine = (SPosition[1] - 30) >= 0 ? SPosition[1] - 30 : 0;
+
+  console.log(SPosition);
 
   /* Init Column */
   for (let column = SPosition[0]; column >= maxBoundaryInitColumn; column--) {
