@@ -85,7 +85,9 @@ const findS = (ctx, image, curTry = 0) => {
           }
         }
 
-        if (!gotCorrectLetter) {
+        if (gotCorrectLetter) {
+          break;
+        } else {
           matchPixel = null;
         }
       }
@@ -104,7 +106,7 @@ const findS = (ctx, image, curTry = 0) => {
     return null;
   }
 
-  return [matchPixel[0] - 1, matchPixel[1] - 4];
+  return [matchPixel[0] - 5, matchPixel[1] - 5];
 };
 
 const findDescriptionBoundaries = (ctx, image, SPosition) => {
@@ -116,7 +118,7 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
   const maxBoundaryInitColumn = (SPosition[0] - 200) >= 0 ? SPosition[0] - 200 : 0;
   const maxBoundaryInitLine = (SPosition[1] - 30) >= 0 ? SPosition[1] - 30 : 0;
 
-  console.log(SPosition);
+  // console.log(SPosition);
 
   /* Init Column */
   for (let column = SPosition[0]; column >= maxBoundaryInitColumn; column--) {
