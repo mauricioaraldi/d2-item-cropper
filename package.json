@@ -1,6 +1,6 @@
 {
   "name": "d2-item-cropper",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Tool to crop item stats and image from an image.",
   "homepage": "https://github.com/mauricioaraldi/d2-item-cropper",
   "private": true,
