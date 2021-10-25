@@ -4,12 +4,17 @@
 export const DESCRIPTION_BG_COLOR = [
   [5, 5, 5],
 ];
-export const DESCRIPTION_BG_THRESHOLD_MAX = 20;
-export const DESCRIPTION_BG_THRESHOLD_MIN = 20;
+export const DESCRIPTION_BG_THRESHOLD_MAX = 16;
+export const DESCRIPTION_BG_THRESHOLD_MIN = 17;
 export const DESCRIPTION_BG_PADDING = 25;
 
 /* Description font */
 export const DESCRIPTION_FONT_COLOR = [
+  { /* Set */
+    color: [104, 254, 47],
+    thresholdMax: 27,
+    thresholdMin: 17,
+  },
   { /* Unique */
     color: [182, 167, 114],
     thresholdMax: 3,
@@ -17,12 +22,7 @@ export const DESCRIPTION_FONT_COLOR = [
   },
   { /* Rune word */
     color: [196, 189, 125],
-    thresholdMax: 1,
-    thresholdMin: 1,
-  },
-  { /* Set */
-    color: [104, 254, 47],
-    thresholdMax: 10,
+    thresholdMax: 18,
     thresholdMin: 10,
   },
   { /* Socketed */
@@ -62,4 +62,5 @@ export const DESCRIPTION_FONT_COLOR = [
   },
 ];
 export const REQUIRED_DESCRIPTION_FONT_MATCHES_IN_ROW = 4;
-export const REQUIRED_BLACKBOX_MATCHES_IN_ROW = 10;
+export const REQUIRED_BLACKBOX_MATCHES_COLUMN_IN_ROW = 15;
+export const REQUIRED_BLACKBOX_MATCHES_LINE_IN_ROW = 3;

@@ -7,7 +7,8 @@ import {
   DESCRIPTION_BG_PADDING,
 
   DESCRIPTION_FONT_COLOR,
-  REQUIRED_BLACKBOX_MATCHES_IN_ROW,
+  REQUIRED_BLACKBOX_MATCHES_COLUMN_IN_ROW,
+  REQUIRED_BLACKBOX_MATCHES_LINE_IN_ROW,
   REQUIRED_DESCRIPTION_FONT_MATCHES_IN_ROW,
 } from './constants';
 
@@ -67,21 +68,26 @@ const findS = (ctx, image, curTry = 0) => {
       }
 
       if (matchPixel) {
+        const initialColumn = matchPixel[0] - 50;
         let gotCorrectLetter = true;
 
-        for (let blackBoxMatches = 0; blackBoxMatches < REQUIRED_BLACKBOX_MATCHES_IN_ROW; blackBoxMatches++) {
-          const blackBoxPixel = ctx.getImageData(matchPixel[0] - (5 + blackBoxMatches), matchPixel[1], 1, 1);
+        for (let blackBoxLineMatches = 0; blackBoxLineMatches < REQUIRED_BLACKBOX_MATCHES_LINE_IN_ROW; blackBoxLineMatches++) {
+          const line = matchPixel[1] + (blackBoxLineMatches * 20);
 
-          if (
-            !matchColor(
-              blackBoxPixel.data,
-              DESCRIPTION_BG_COLOR[0],
-              DESCRIPTION_BG_THRESHOLD_MIN,
-              DESCRIPTION_BG_THRESHOLD_MAX
-            )
-          ) {
-            gotCorrectLetter = false;
-            break;
+          for (let blackBoxColumnMatches = 0; blackBoxColumnMatches < REQUIRED_BLACKBOX_MATCHES_COLUMN_IN_ROW; blackBoxColumnMatches++) {
+            const blackBoxPixel = ctx.getImageData(initialColumn + blackBoxColumnMatches, line, 1, 1);
+
+            if (
+              !matchColor(
+                blackBoxPixel.data,
+                DESCRIPTION_BG_COLOR[0],
+                DESCRIPTION_BG_THRESHOLD_MIN,
+                DESCRIPTION_BG_THRESHOLD_MAX
+              )
+            ) {
+              gotCorrectLetter = false;
+              break;
+            }
           }
         }
 
@@ -115,7 +121,7 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
   let initColumn;
   let endColumn;
 
-  const maxBoundaryInitColumn = (SPosition[0] - 200) >= 0 ? SPosition[0] - 200 : 0;
+  const maxBoundaryInitColumn = (SPosition[0] - 250) >= 0 ? SPosition[0] - 250 : 0;
   const maxBoundaryInitLine = (SPosition[1] - 30) >= 0 ? SPosition[1] - 30 : 0;
 
   // console.log(SPosition);
@@ -123,6 +129,8 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
   /* Init Column */
   for (let column = SPosition[0]; column >= maxBoundaryInitColumn; column--) {
     const imageData = ctx.getImageData(column, SPosition[1], 1, 1);
+
+    // console.log(column, SPosition[1], imageData.data);
 
     if (
       matchColor(
@@ -208,6 +216,8 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
     return null;
   }
 
+  // console.log(initColumn, endColumn, initLine, endLine);
+
   return {
     imageData: ctx.getImageData(
       initColumn,
@@ -220,6 +230,24 @@ const findDescriptionBoundaries = (ctx, image, SPosition) => {
     initColumn,
     endColumn,
   };
+};
+
+const debugDrawAreas = (canvas, SPosition, image) => {
+  const ctx = canvas.getContext('2d');
+
+  canvas.height = image.height;
+  canvas.width = image.width;      
+  ctx.drawImage(image, 0, 0);
+
+  ctx.fillStyle = 'blue';
+  ctx.fillRect(SPosition[0] - 1, SPosition[1] - 1, 3, 3);
+  ctx.fillStyle = 'yellow';
+  ctx.fillRect(SPosition[0], SPosition[1], 1, 1);
+
+  ctx.fillStyle = 'green';
+  ctx.fillRect(SPosition[0] + 4, SPosition[1] + 4, 3, 3);
+  ctx.fillStyle = 'yellow';
+  ctx.fillRect(SPosition[0] + 5, SPosition[1] + 5, 1, 1);
 };
 
 document.addEventListener('paste', event => {
@@ -253,6 +281,8 @@ document.addEventListener('paste', event => {
 
       const SPosition = findS(virtualCtx, image);
       const { imageData: descriptionImageData } = findDescriptionBoundaries(virtualCtx, image, SPosition);
+
+      // debugDrawAreas(canvas, SPosition, image);
 
       canvas.height = descriptionImageData.height;
       canvas.width = descriptionImageData.width;
